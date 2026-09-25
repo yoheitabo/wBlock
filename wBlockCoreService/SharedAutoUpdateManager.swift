@@ -1225,7 +1225,7 @@ public actor SharedAutoUpdateManager {
             if isDeferred {
                 os_log("Auto-update deferred: %{public}@", log: log, type: .info, autoUpdateError.localizedDescription)
             } else {
-                os_log("Auto-update failed: %{public}@", log: log, type: .error, autoUpdateError.localizedDescription)
+                os_log("[WBLOCK_AUTO_UPDATE_FAILED] %{public}@", log: log, type: .error, autoUpdateError.localizedDescription)
             }
 
             appendSharedLog(
@@ -1248,7 +1248,7 @@ public actor SharedAutoUpdateManager {
                 : .failed(message: autoUpdateError.localizedDescription)
             return await finishStartedRun(outcome)
         } catch {
-            os_log("Auto-update failed: %{public}@", log: log, type: .error, String(describing: error))
+            os_log("[WBLOCK_AUTO_UPDATE_FAILED] %{public}@", log: log, type: .error, String(describing: error))
             appendSharedLog("Auto-update failed: trigger=\(trigger), phase=unknown, reason=\(error.localizedDescription)")
             let durationMs = currentDurationMs()
             appendTelemetry(

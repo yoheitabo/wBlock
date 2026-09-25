@@ -4,7 +4,7 @@ import { readFileSync, writeFileSync } from "node:fs";
 
 const file = process.argv[2];
 if (!file) {
-  console.error("Usage: patch-background-execute-script.mjs <background-source.js>");
+  console.error("[WBLOCK_BACKGROUND_PATCH_ARGUMENT_INVALID] Usage: patch-background-execute-script.mjs <background-source.js>");
   process.exit(2);
 }
 
@@ -46,7 +46,7 @@ const patched = `    static async executeScript(scriptInjection) {
 
 const occurrences = source.split(upstream).length - 1;
 if (occurrences !== 1) {
-  console.error(`[error] expected exactly one upstream executeScript wrapper, found ${occurrences}: ${file}`);
+  console.error(`[WBLOCK_BACKGROUND_PATCH_TARGET_INVALID] expected exactly one upstream executeScript wrapper, found ${occurrences}: ${file}`);
   process.exit(1);
 }
 

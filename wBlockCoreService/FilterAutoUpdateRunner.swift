@@ -9,7 +9,7 @@ public enum FilterAutoUpdateRunner {
         case .succeeded:
             return true
         case .timedOut:
-            logger.error("XPC update timed out; skipping fallback to avoid overlapping the remote update")
+            logger.error("[WBLOCK_CORE_UNCLASSIFIED_ERROR] XPC update timed out; skipping fallback to avoid overlapping the remote update")
             return false
         case .unavailable:
             logger.info("XPC update unavailable, running shared auto-update fallback for trigger=\(trigger, privacy: .public)")

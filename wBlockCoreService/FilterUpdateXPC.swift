@@ -84,13 +84,13 @@ public final class FilterUpdateClient {
 
             connection.invalidationHandler = {
                 if markFinished() {
-                    os_log("XPC start connection invalidated", log: log, type: .error)
+                    os_log("[WBLOCK_XPC_START_CONNECTION_INVALIDATED] XPC start connection invalidated", log: log, type: .error)
                     cont.resume(returning: .unavailable)
                 }
             }
             connection.interruptionHandler = {
                 if markFinished() {
-                    os_log("XPC start connection interrupted", log: log, type: .error)
+                    os_log("[WBLOCK_XPC_START_CONNECTION_INTERRUPTED] XPC start connection interrupted", log: log, type: .error)
                     cont.resume(returning: .unavailable)
                 }
             }
@@ -105,7 +105,7 @@ public final class FilterUpdateClient {
 
             let proxy = connection.remoteObjectProxyWithErrorHandler { error in
                 if markFinished() {
-                    os_log("Failed to start XPC filter update: %{public}@", log: log, type: .error, error.localizedDescription)
+                    os_log("[WBLOCK_XPC_FILTER_UPDATE_START_FAILED] %{public}@", log: log, type: .error, error.localizedDescription)
                     connection.invalidate()
                     cont.resume(returning: .unavailable)
                 }
@@ -132,7 +132,7 @@ public final class FilterUpdateClient {
     public func updateFilters(timeout seconds: TimeInterval = 180.0) async -> FilterUpdateClientResult {
         let log = OSLog(subsystem: "wBlockCoreService", category: "FilterUpdateXPC")
         guard seconds.isFinite, seconds >= 0 else {
-            os_log("Invalid XPC timeout: %.2fs", log: log, type: .error, seconds)
+            os_log("[WBLOCK_XPC_TIMEOUT_INVALID] %.2fs", log: log, type: .error, seconds)
             return .unavailable
         }
 
@@ -163,13 +163,13 @@ public final class FilterUpdateClient {
 
             connection.invalidationHandler = {
                 if markFinished() {
-                    os_log("XPC connection invalidated", log: log, type: .error)
+                    os_log("[WBLOCK_XPC_CONNECTION_INVALIDATED] XPC connection invalidated", log: log, type: .error)
                     cont.resume(returning: .unavailable)
                 }
             }
             connection.interruptionHandler = {
                 if markFinished() {
-                    os_log("XPC connection interrupted", log: log, type: .error)
+                    os_log("[WBLOCK_XPC_CONNECTION_INTERRUPTED] XPC connection interrupted", log: log, type: .error)
                     cont.resume(returning: .unavailable)
                 }
             }
@@ -180,7 +180,7 @@ public final class FilterUpdateClient {
             timeoutTask = Task { [weak connection] in
                 try? await Task.sleep(nanoseconds: timeoutNanoseconds)
                 if markFinished() {
-                    os_log("XPC request timed out after %.2fs", log: log, type: .error, seconds)
+                    os_log("[WBLOCK_XPC_REQUEST_TIMEOUT] %.2fs", log: log, type: .error, seconds)
                     connection?.invalidate()
                     cont.resume(returning: .timedOut)
                 }
@@ -188,14 +188,14 @@ public final class FilterUpdateClient {
 
             let proxy = connection.remoteObjectProxyWithErrorHandler { error in
                 if markFinished() {
-                    os_log("Failed to obtain remoteObjectProxy for XPC service: %{public}@", log: log, type: .error, error.localizedDescription)
+                    os_log("[WBLOCK_XPC_PROXY_UNAVAILABLE] %{public}@", log: log, type: .error, error.localizedDescription)
                     connection.invalidate()
                     cont.resume(returning: .unavailable)
                 }
             }
 
             guard let filterProxy = proxy as? FilterUpdateProtocol else {
-                os_log("Failed to cast remoteObjectProxy to FilterUpdateProtocol", log: log, type: .error)
+                os_log("[WBLOCK_XPC_PROXY_TYPE_INVALID] Failed to cast remoteObjectProxy to FilterUpdateProtocol", log: log, type: .error)
                 if markFinished() {
                     connection.invalidate()
                     cont.resume(returning: .unavailable)

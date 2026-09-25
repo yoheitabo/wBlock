@@ -421,7 +421,7 @@ final class CloudSyncManager: ObservableObject {
         } catch {
             setLastSyncError(error)
             setStatus(.error)
-            logger.error("❌ Download/apply failed: \(error.localizedDescription, privacy: .public)")
+            logger.error("[WBLOCK_CLOUD_DOWNLOAD_APPLY_FAILED] \(error.wBlockDiagnosticDescription, privacy: .public)")
             return false
         }
     }
@@ -565,7 +565,7 @@ final class CloudSyncManager: ObservableObject {
             }
             pendingUploadTask = task
         @unknown default:
-            logger.error("Unknown CloudSync upload action; deferring upload")
+            logger.error("[WBLOCK_APP_UNCLASSIFIED_ERROR] Unknown CloudSync upload action; deferring upload")
             return
         }
     }
@@ -613,7 +613,7 @@ final class CloudSyncManager: ObservableObject {
                 isSyncing = true
                 setStatus(.uploading)
             @unknown default:
-                logger.error("Unknown CloudSync upload action; skipping upload")
+                logger.error("[WBLOCK_APP_UNCLASSIFIED_ERROR] Unknown CloudSync upload action; skipping upload")
                 return
             }
         }
@@ -670,7 +670,7 @@ final class CloudSyncManager: ObservableObject {
         } catch {
             setLastSyncError(error)
             setStatus(.error)
-            logger.error("❌ Upload failed: \(error.localizedDescription, privacy: .public)")
+            logger.error("[WBLOCK_CLOUD_UPLOAD_FAILED] \(error.wBlockDiagnosticDescription, privacy: .public)")
         }
     }
 
@@ -732,7 +732,7 @@ final class CloudSyncManager: ObservableObject {
         } catch {
             setLastSyncError(error)
             setStatus(.error)
-            logger.error("❌ Sync failed: \(error.localizedDescription, privacy: .public)")
+            logger.error("[WBLOCK_CLOUD_SYNC_FAILED] \(error.wBlockDiagnosticDescription, privacy: .public)")
         }
     }
 
@@ -2335,7 +2335,7 @@ final class CloudSyncManager: ObservableObject {
             try content.write(to: fileURL, atomically: true, encoding: .utf8)
         } catch {
             Logger(subsystem: "skula.wBlock", category: "CloudSync").error(
-                "Failed writing inline user list content: \(error.localizedDescription, privacy: .public)"
+                "[WBLOCK_CLOUD_INLINE_LIST_WRITE_FAILED] \(error.wBlockDiagnosticDescription, privacy: .public)"
             )
         }
     }

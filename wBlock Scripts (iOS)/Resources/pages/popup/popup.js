@@ -1,4 +1,20 @@
 const ZAPPER_STORAGE_PREFIX = 'wblock.zapperRules.v1:';
+installWBlockDiagnosticCodes();
+function installWBlockDiagnosticCodes() {
+    const pattern = /^\[WBLOCK_[A-Z0-9_]+\]$/;
+    for (const [level, fallback] of [['error', 'WBLOCK_UNCLASSIFIED_ERROR'], ['warn', 'WBLOCK_UNCLASSIFIED_WARNING']]) {
+        if (console[level]?.wBlockDiagnosticCodesInstalled === true) continue;
+        const original = console[level].bind(console);
+        const wrapped = (...args) => {
+            const first = args[0];
+            if (typeof first === 'string' && pattern.test(first.split(' ', 1)[0])) original(...args);
+            else if (typeof first === 'string') original(`[${fallback}] ${first}`, ...args.slice(1));
+            else original(`[${fallback}]`, ...args);
+        };
+        Object.defineProperty(wrapped, 'wBlockDiagnosticCodesInstalled', { value: true });
+        console[level] = wrapped;
+    }
+}
 const ZAPPER_META_PREFIX = 'wblock.zapperMeta.v1:';
 const NO_AUTOPLAY_ENABLED_KEY = 'wblock.noAutoplay.enabled.v1';
 const NO_AUTOPLAY_ALLOW_PREFIX = 'wblock.noAutoplayAllow.v1:';

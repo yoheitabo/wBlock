@@ -122,7 +122,7 @@ struct SettingsView: View {
             if case .failure(let error) = result {
                 backupStatusMessage = String.localizedStringWithFormat(
                     NSLocalizedString("Export failed: %@", comment: "Backup export failure"),
-                    error.localizedDescription
+                    error.wBlockDiagnosticDescription
                 )
                 showingBackupStatus = true
             }
@@ -924,7 +924,7 @@ extension SettingsView {
                 await ConcurrentLogManager.shared.operation("settings-export", fields: ["result": "creation-failed"], level: .error)
                 backupStatusMessage = String.localizedStringWithFormat(
                     NSLocalizedString("Export failed: %@", comment: "Backup export failure"),
-                    error.localizedDescription
+                    error.wBlockDiagnosticDescription
                 )
                 showingBackupStatus = true
                 return
@@ -952,7 +952,7 @@ extension SettingsView {
                     Task { await ConcurrentLogManager.shared.operation("settings-export", fields: ["result": "failed", "domain": failure.domain, "code": String(failure.code)], level: .error) }
                     backupStatusMessage = String.localizedStringWithFormat(
                         NSLocalizedString("Export failed: %@", comment: "Backup export failure"),
-                        error.localizedDescription
+                        error.wBlockDiagnosticDescription
                     )
                     showingBackupStatus = true
                 }
@@ -979,7 +979,7 @@ extension SettingsView {
                 } catch {
                     backupStatusMessage = String.localizedStringWithFormat(
                         NSLocalizedString("Failed to read backup: %@", comment: "Backup import read failure"),
-                        error.localizedDescription
+                        error.wBlockDiagnosticDescription
                     )
                     showingBackupStatus = true
                 }
@@ -987,7 +987,7 @@ extension SettingsView {
         case .failure(let error):
             backupStatusMessage = String.localizedStringWithFormat(
                 NSLocalizedString("Import failed: %@", comment: "Backup import failure"),
-                error.localizedDescription
+                error.wBlockDiagnosticDescription
             )
             showingBackupStatus = true
         }
@@ -1002,7 +1002,7 @@ extension SettingsView {
             } catch {
                 backupStatusMessage = String.localizedStringWithFormat(
                     NSLocalizedString("Import failed: %@", comment: "Backup import failure"),
-                    error.localizedDescription
+                    error.wBlockDiagnosticDescription
                 )
                 showingBackupStatus = true
                 return

@@ -1171,14 +1171,14 @@ struct OnboardingView: View {
                 } catch {
                     backupRestoreError = String.localizedStringWithFormat(
                         NSLocalizedString("Failed to read backup: %@", comment: "Backup import read failure"),
-                        error.localizedDescription
+                        error.wBlockDiagnosticDescription
                     )
                 }
             }
         case .failure(let error):
             backupRestoreError = String.localizedStringWithFormat(
                 NSLocalizedString("Import failed: %@", comment: "Backup import failure"),
-                error.localizedDescription
+                error.wBlockDiagnosticDescription
             )
         }
     }
@@ -1192,7 +1192,7 @@ struct OnboardingView: View {
         } catch {
             backupRestoreError = String.localizedStringWithFormat(
                 NSLocalizedString("Import failed: %@", comment: "Backup import failure"),
-                error.localizedDescription
+                error.wBlockDiagnosticDescription
             )
             return
         }

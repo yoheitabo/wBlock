@@ -331,7 +331,7 @@ public actor ConcurrentLogManager {
             try data.write(to: url, options: .atomic)
         } catch {
             #if DEBUG
-            print("Failed to persist logs: \(error)")
+            print("[WBLOCK_LOG_PERSIST_FAILED] \(error.wBlockDiagnosticDescription)")
             #endif
         }
     }

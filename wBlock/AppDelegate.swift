@@ -18,6 +18,13 @@ import BackgroundTasks
 import wBlockCoreService
 #endif
 
+extension Error {
+    var wBlockDiagnosticDescription: String {
+        let native = self as NSError
+        return "[\(native.domain):\(native.code)] \(native.localizedDescription)"
+    }
+}
+
 // Define the notification name globally or in a shared place
 extension Notification.Name {
     static let applyWBlockChangesNotification = Notification.Name("applyWBlockChangesNotification_unique_identifier")
@@ -43,14 +50,14 @@ private final class BackgroundTaskHandle {
     @discardableResult
     func start(name: String) -> Bool {
         identifier = application.beginBackgroundTask(withName: name) { [weak self] in
-            os_log("Background task expired: %{public}@", type: .error, name)
+            os_log("[WBLOCK_BACKGROUND_TASK_EXPIRED] %{public}@", type: .error, name)
             Task { @MainActor in
                 self?.end()
             }
         }
 
         if identifier == .invalid {
-            os_log("Failed to begin background task: %{public}@", type: .error, name)
+            os_log("[WBLOCK_BACKGROUND_TASK_START_FAILED] %{public}@", type: .error, name)
             return false
         }
 
@@ -514,7 +521,7 @@ extension AppDelegate: UIApplicationDelegate {
 
             let didSave = await ProtobufDataManager.shared.saveDataImmediately()
             if !didSave {
-                os_log("Failed to flush protobuf data during %{public}@", type: .error, reason)
+                os_log("[WBLOCK_PROTOBUF_FLUSH_FAILED] %{public}@", type: .error, reason)
             }
         }
     }
@@ -523,7 +530,7 @@ extension AppDelegate: UIApplicationDelegate {
         let refreshRegistered = BGTaskScheduler.shared.register(forTaskWithIdentifier: backgroundTaskIdentifier, using: nil) { task in
             guard let refreshTask = task as? BGAppRefreshTask else {
                 os_log(
-                    "Unexpected BGTask type for %{public}@ (%{public}@)",
+                    "[WBLOCK_BACKGROUND_TASK_TYPE_INVALID] %{public}@ (%{public}@)",
                     type: .error,
                     self.backgroundTaskIdentifier,
                     String(describing: type(of: task))
@@ -534,13 +541,13 @@ extension AppDelegate: UIApplicationDelegate {
             self.handleBackgroundFilterUpdate(task: refreshTask)
         }
         if !refreshRegistered {
-            os_log("Failed to register BG task identifier %{public}@", type: .error, backgroundTaskIdentifier)
+            os_log("[WBLOCK_BACKGROUND_TASK_REGISTRATION_FAILED] %{public}@", type: .error, backgroundTaskIdentifier)
         }
 
         let processingRegistered = BGTaskScheduler.shared.register(forTaskWithIdentifier: backgroundProcessingIdentifier, using: nil) { task in
             guard let processingTask = task as? BGProcessingTask else {
                 os_log(
-                    "Unexpected BGTask type for %{public}@ (%{public}@)",
+                    "[WBLOCK_BACKGROUND_TASK_TYPE_INVALID] %{public}@ (%{public}@)",
                     type: .error,
                     self.backgroundProcessingIdentifier,
                     String(describing: type(of: task))
@@ -551,7 +558,7 @@ extension AppDelegate: UIApplicationDelegate {
             self.handleBackgroundProcessingUpdate(task: processingTask)
         }
         if !processingRegistered {
-            os_log("Failed to register BG task identifier %{public}@", type: .error, backgroundProcessingIdentifier)
+            os_log("[WBLOCK_BACKGROUND_TASK_REGISTRATION_FAILED] %{public}@", type: .error, backgroundProcessingIdentifier)
         }
     }
 
@@ -594,13 +601,13 @@ extension AppDelegate: UIApplicationDelegate {
             Task { await ConcurrentLogManager.shared.operation("background-submit", fields: ["task": request.identifier, "result": "failed", "domain": error.domain, "code": String(error.code)], level: .error) }
             if error.domain == "BGTaskSchedulerErrorDomain" {
                 switch error.code {
-                case 1: os_log("BGTaskScheduler: Identifier not in Info.plist", type: .error)
-                case 2: os_log("BGTaskScheduler: Too many pending tasks", type: .error)
-                case 3: os_log("BGTaskScheduler: Background tasks unavailable", type: .error)
-                default: os_log("BGTaskScheduler error: %{public}@", type: .error, error.localizedDescription)
+                case 1: os_log("[WBLOCK_BACKGROUND_TASK_IDENTIFIER_MISSING] Identifier not in Info.plist", type: .error)
+                case 2: os_log("[WBLOCK_BACKGROUND_TASK_LIMIT_EXCEEDED] Too many pending tasks", type: .error)
+                case 3: os_log("[WBLOCK_BACKGROUND_TASK_UNAVAILABLE] Background tasks unavailable", type: .error)
+                default: os_log("[WBLOCK_BACKGROUND_TASK_SCHEDULER_FAILED] %{public}@", type: .error, error.wBlockDiagnosticDescription)
                 }
             } else {
-                os_log("Failed to schedule background filter update: %{public}@", type: .error, error.localizedDescription)
+                os_log("[WBLOCK_BACKGROUND_FILTER_SCHEDULE_FAILED] %{public}@", type: .error, error.wBlockDiagnosticDescription)
             }
             Task { @MainActor in
                 await ProtobufDataManager.shared.recordAutoUpdateTaskScheduleAttempt(
@@ -652,13 +659,13 @@ extension AppDelegate: UIApplicationDelegate {
             Task { await ConcurrentLogManager.shared.operation("background-submit", fields: ["task": request.identifier, "result": "failed", "domain": error.domain, "code": String(error.code)], level: .error) }
             if error.domain == "BGTaskSchedulerErrorDomain" {
                 switch error.code {
-                case 1: os_log("BGTaskScheduler: Processing identifier not in Info.plist", type: .error)
-                case 2: os_log("BGTaskScheduler: Too many pending processing tasks", type: .error)
-                case 3: os_log("BGTaskScheduler: Background processing unavailable", type: .error)
-                default: os_log("BGTaskScheduler processing error: %{public}@", type: .error, error.localizedDescription)
+                case 1: os_log("[WBLOCK_BACKGROUND_PROCESSING_IDENTIFIER_MISSING] Processing identifier not in Info.plist", type: .error)
+                case 2: os_log("[WBLOCK_BACKGROUND_PROCESSING_LIMIT_EXCEEDED] Too many pending processing tasks", type: .error)
+                case 3: os_log("[WBLOCK_BACKGROUND_PROCESSING_UNAVAILABLE] Background processing unavailable", type: .error)
+                default: os_log("[WBLOCK_BACKGROUND_PROCESSING_SCHEDULER_FAILED] %{public}@", type: .error, error.wBlockDiagnosticDescription)
                 }
             } else {
-                os_log("Failed to schedule background processing task: %{public}@", type: .error, error.localizedDescription)
+                os_log("[WBLOCK_BACKGROUND_PROCESSING_SCHEDULE_FAILED] %{public}@", type: .error, error.wBlockDiagnosticDescription)
             }
             Task { @MainActor in
                 await ProtobufDataManager.shared.recordAutoUpdateTaskScheduleAttempt(
@@ -672,7 +679,7 @@ extension AppDelegate: UIApplicationDelegate {
     
     private func taskScheduleFailureDetails(for error: NSError) -> (result: AutoUpdateDiagnosticResult, message: String) {
         guard error.domain == "BGTaskSchedulerErrorDomain" else {
-            return (.submitFailed, error.localizedDescription)
+            return (.submitFailed, error.wBlockDiagnosticDescription)
         }
 
         switch error.code {
@@ -683,7 +690,7 @@ extension AppDelegate: UIApplicationDelegate {
         case 3:
             return (.unavailable, "Background tasks unavailable")
         default:
-            return (.schedulerError, error.localizedDescription)
+            return (.schedulerError, error.wBlockDiagnosticDescription)
         }
     }
 
@@ -784,11 +791,11 @@ extension AppDelegate: UIApplicationDelegate {
             case let .deferred(phase):
                 os_log("%{public}@ deferred at %{public}@", type: .info, taskLabel, phase)
             case let .failed(message):
-                os_log("%{public}@ failed: %{public}@", type: .error, taskLabel, message)
+                os_log("[WBLOCK_BACKGROUND_UPDATE_FAILED] %{public}@: %{public}@", type: .error, taskLabel, message)
             case .cancelled:
                 os_log("%{public}@ cancelled", type: .default, taskLabel)
             @unknown default:
-                os_log("%{public}@ failed with an unknown outcome", type: .error, taskLabel)
+                os_log("[WBLOCK_BACKGROUND_UPDATE_OUTCOME_UNKNOWN] %{public}@", type: .error, taskLabel)
             }
 
             guard await completionState.claimCompletion() else { return }
@@ -826,7 +833,7 @@ extension AppDelegate: UIApplicationDelegate {
         await ProtobufDataManager.shared.setAutoUpdateIsRunning(false)
         let didSave = await ProtobufDataManager.shared.saveDataImmediately()
         if !didSave {
-            os_log("Failed to clear auto-update running flag during %{public}@", type: .error, context)
+            os_log("[WBLOCK_AUTO_UPDATE_FLAG_CLEAR_FAILED] %{public}@", type: .error, context)
         }
     }
 

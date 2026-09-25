@@ -94,7 +94,7 @@ final class AutoUpdateLaunchAgentManager {
                 try service.unregister()
             }
         } catch {
-            logger.error("Launch agent reconcile failed: \(error.localizedDescription, privacy: .public)")
+            logger.error("[WBLOCK_LAUNCH_AGENT_RECONCILE_FAILED] \(error.wBlockDiagnosticDescription, privacy: .public)")
             let refreshed = service.status
             if refreshed == .enabled || refreshed == .requiresApproval || refreshed == .notRegistered || refreshed == .notFound {
                 return status(from: refreshed)
@@ -104,7 +104,7 @@ final class AutoUpdateLaunchAgentManager {
                 detail: LocalizedStrings.format(
                     "Background agent error: %@",
                     comment: "Background auto-update agent status detail",
-                    error.localizedDescription
+                    error.wBlockDiagnosticDescription
                 )
             )
         }
@@ -119,7 +119,7 @@ final class AutoUpdateLaunchAgentManager {
 
         let succeeded = SMLoginItemSetEnabled(Self.loginItemBundleIdentifier as CFString, enabled)
         guard succeeded else {
-            logger.error("Legacy login item reconcile failed")
+            logger.error("[WBLOCK_APP_UNCLASSIFIED_ERROR] Legacy login item reconcile failed")
             return unavailableStatus()
         }
 

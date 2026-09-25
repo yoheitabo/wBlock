@@ -230,7 +230,7 @@ final class RulesDocumentScrollView: UIScrollView {
         addSubview(textView)
     }
 
-    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+    required init?(coder: NSCoder) { fatalError("[WBLOCK_TEXT_VIEW_CODER_UNSUPPORTED] init(coder:) has not been implemented") }
 
     override func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
         if gestureRecognizer === panGestureRecognizer {

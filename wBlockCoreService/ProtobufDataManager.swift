@@ -466,7 +466,7 @@ private actor ProtobufDiskStore {
         let durationMs = Int(Date().timeIntervalSince(startedAt) * 1000)
         if durationMs >= 100 {
             logger.warning(
-                "File coordination held for \(durationMs) ms: \(dataURL.lastPathComponent)"
+                "[WBLOCK_FILE_COORDINATION_SLOW] File coordination held for \(durationMs) ms: \(dataURL.lastPathComponent)"
             )
         }
 
@@ -1522,7 +1522,7 @@ public class ProtobufDataManager: ObservableObject {
 
             return mutation.result
         } catch {
-            logger.error("❌ Failed to consume pending zapper deletions: \(error.localizedDescription)")
+            logger.error("[WBLOCK_CORE_UNCLASSIFIED_ERROR] Failed to consume pending zapper deletions: \(error.localizedDescription)")
             lastError = error
             return []
         }
@@ -1793,7 +1793,7 @@ public class ProtobufDataManager: ObservableObject {
             return didChange
         } catch {
             lastError = error
-            logger.error("❌ Failed to refresh protobuf data from disk: \(error.localizedDescription)")
+            logger.error("[WBLOCK_CORE_UNCLASSIFIED_ERROR] Failed to refresh protobuf data from disk: \(error.localizedDescription)")
             return false
         }
     }
@@ -1967,7 +1967,7 @@ public class ProtobufDataManager: ObservableObject {
             }
             return true
         } catch {
-            logger.error("❌ Failed to save data immediately: \(error.localizedDescription)")
+            logger.error("[WBLOCK_CORE_UNCLASSIFIED_ERROR] Failed to save data immediately: \(error.localizedDescription)")
             lastError = error
             return false
         }
@@ -1981,7 +1981,7 @@ public class ProtobufDataManager: ObservableObject {
                 try fileManager.createDirectory(at: dataDir, withIntermediateDirectories: true)
                 logger.info("✅ Created data directory: \(dataDir.path)")
             } catch {
-                logger.error("❌ Failed to create data directory: \(error)")
+                logger.error("[WBLOCK_CORE_UNCLASSIFIED_ERROR] Failed to create data directory: \(error)")
             }
         }
     }
@@ -2079,7 +2079,7 @@ public class ProtobufDataManager: ObservableObject {
 
                 // Persist identity repairs once; future reads no longer need a fallback.
                 var needsSave = loaded.identitiesRepaired
-                if needsSave { logger.warning("Repaired invalid or noncanonical persisted record identifiers") }
+                if needsSave { logger.warning("[WBLOCK_RECORD_IDENTIFIERS_REPAIRED] Repaired invalid or noncanonical persisted record identifiers") }
                 // Migrate BPC userscript from gitflic to Greasy Fork
                 let oldBpcURL = "https://gitflic.ru/project/magnolia1234/bypass-paywalls-clean-filters/blob/raw?file=userscript%2Fbpc.en.user.js"
                 let newBpcURL = "https://greasyfork.org/scripts/542351-bypass-paywalls-clean-en/code/Bypass%20Paywalls%20Clean%20(EN).user.js"
@@ -2112,13 +2112,13 @@ public class ProtobufDataManager: ObservableObject {
             }
             
         } catch {
-            logger.error("❌ Failed to load data: \(error)")
+            logger.error("[WBLOCK_CORE_UNCLASSIFIED_ERROR] Failed to load data: \(error)")
             lastError = error
 
             if freshMigrationAttempt {
                 // Never replace a failed migration with defaults or stamp the flag.
                 // Leaving both absent makes the migration retryable on the next launch.
-                logger.error("Legacy migration did not persist; leaving migration retryable")
+                logger.error("[WBLOCK_CORE_UNCLASSIFIED_ERROR] Legacy migration did not persist; leaving migration retryable")
             } else {
                 await recoverAfterLoadFailure()
             }
@@ -2146,10 +2146,10 @@ public class ProtobufDataManager: ObservableObject {
             lastError = nil
 
             if recovered.recoveredFromBackup {
-                logger.warning("Recovered corrupt protobuf data from last-known-good backup")
+                logger.warning("[WBLOCK_PROTOBUF_RECOVERED] Recovered corrupt protobuf data from last-known-good backup")
             }
         } catch {
-            logger.error("❌ Failed to recover protobuf data: \(error)")
+            logger.error("[WBLOCK_CORE_UNCLASSIFIED_ERROR] Failed to recover protobuf data: \(error)")
             if await diskStore.fileExists(at: dataFileURL) {
                 // The main file still exists, so recovery failed before confirming
                 // corruption (for example a transient read error). Do not overwrite it.
@@ -2172,7 +2172,7 @@ public class ProtobufDataManager: ObservableObject {
             try await diskStore.resetFiles(dataURL: dataFileURL, backupURL: backupFileURL, versionURL: dataVersionFileURL)
         } catch {
             lastError = error
-            logger.error("⚠️ Failed to reset protobuf storage: \(error.localizedDescription)")
+            logger.error("[WBLOCK_CORE_UNCLASSIFIED_ERROR] Failed to reset protobuf storage: \(error.localizedDescription)")
             return false
         }
         guard storageGeneration == resetGeneration else { return false }
@@ -2193,7 +2193,8 @@ public class ProtobufDataManager: ObservableObject {
             )
         if let storageResetError {
             logger.error(
-                "⚠️ Failed to reset userscript storage during reset: \(storageResetError.localizedDescription)")
+                "[WBLOCK_USER_SCRIPT_STORAGE_RESET_FAILED] \(storageResetError.localizedDescription)"
+            )
         }
 
         let createdDefaults = await createDefaultData(
@@ -2223,7 +2224,7 @@ public class ProtobufDataManager: ObservableObject {
         if saved {
             logger.info("✅ Created default data")
         } else {
-            logger.error("❌ Failed to persist default data")
+            logger.error("[WBLOCK_CORE_UNCLASSIFIED_ERROR] Failed to persist default data")
         }
         return saved
     }
@@ -2334,7 +2335,7 @@ public class ProtobufDataManager: ObservableObject {
             }
             return true
         } catch {
-            logger.error("❌ Failed to save data: \(error)")
+            logger.error("[WBLOCK_CORE_UNCLASSIFIED_ERROR] Failed to save data: \(error)")
             lastError = error
             return false
         }

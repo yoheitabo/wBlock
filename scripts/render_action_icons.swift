@@ -13,7 +13,7 @@ let gray = CGColor(gray: 0.56, alpha: 1)
 func write(_ context: CGContext, _ name: String) throws {
     guard let output = context.makeImage(),
           let png = NSBitmapImageRep(cgImage: output).representation(using: .png, properties: [:]) else {
-        fatalError("Cannot encode \(name)")
+        fatalError("[WBLOCK_ICON_ENCODE_FAILED] Cannot encode \(name)")
     }
     try png.write(to: directory.appendingPathComponent(name))
 }
@@ -23,7 +23,7 @@ for size in [48, 96, 128, 256, 512] {
         data: nil, width: size, height: size, bitsPerComponent: 8,
         bytesPerRow: size * 4, space: CGColorSpaceCreateDeviceRGB(),
         bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
-    ) else { fatalError("Cannot render icon at \(size)px") }
+    ) else { fatalError("[WBLOCK_ICON_RENDER_FAILED] Cannot render icon at \(size)px") }
 
     // Shield outline in a 512-unit, top-left-origin design space.
     let side = CGFloat(size)

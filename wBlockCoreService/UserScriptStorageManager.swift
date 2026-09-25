@@ -184,7 +184,7 @@ actor UserScriptStorageManager {
         let durationMs = Int(Date().timeIntervalSince(startedAt) * 1000)
         if durationMs >= 100 {
             logger.warning(
-                "File coordination held for \(durationMs) ms: \(dataURL.lastPathComponent)"
+                "[WBLOCK_FILE_COORDINATION_SLOW] File coordination held for \(durationMs) ms: \(dataURL.lastPathComponent)"
             )
         }
 
@@ -245,7 +245,7 @@ actor UserScriptStorageManager {
             return didChange
         } catch {
             #if DEBUG
-            Logger(subsystem: "com.skula.wBlock", category: "UserScriptStorage").error("Failed to refresh userscript storage from disk: \(error.localizedDescription)")
+            Logger(subsystem: "com.skula.wBlock", category: "UserScriptStorage").error("[WBLOCK_USER_SCRIPT_STORAGE_REFRESH_FAILED] \(error.localizedDescription)")
             #endif
             return false
         }

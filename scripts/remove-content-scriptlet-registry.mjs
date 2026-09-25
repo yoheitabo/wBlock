@@ -4,7 +4,7 @@ import { readFileSync, writeFileSync } from "node:fs";
 
 const file = process.argv[2];
 if (!file) {
-  console.error("Usage: remove-content-scriptlet-registry.mjs <content-source.js>");
+  console.error("[WBLOCK_SCRIPTLET_REGISTRY_ARGUMENT_INVALID] Usage: remove-content-scriptlet-registry.mjs <content-source.js>");
   process.exit(2);
 }
 
@@ -16,7 +16,7 @@ const registryEnd = "  var scriptlets = {\n    invoke: getScriptletCode$1,\n    
 
 const count = marker => source.split(marker).length - 1;
 const fail = message => {
-  console.error(`[error] ${message}: ${file}`);
+  console.error(`[WBLOCK_SCRIPTLET_REGISTRY_PATCH_FAILED] ${message}: ${file}`);
   process.exit(1);
 };
 
@@ -97,7 +97,7 @@ stripped = replaceExactly(
 stripped = replaceExactly(
   stripped,
   "        log$1.error('Failed to execute scripts');",
-  "        console.warn('[wBlock] Page script injection was blocked; continuing without page-context scripts.');",
+  "        console.warn('[WBLOCK_PAGE_SCRIPT_INJECTION_BLOCKED] Page script injection was blocked; continuing without page-context scripts.');",
   "page injection fallback log",
 );
 

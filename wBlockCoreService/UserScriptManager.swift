@@ -132,7 +132,7 @@ public class UserScriptManager: ObservableObject {
             userInfo: ["action": "wblock:userscriptsChanged"]
         ) { error in
             if let error {
-                os_log("Failed to invalidate Safari userscript cache: %{public}@", type: .error, error.localizedDescription)
+                os_log("[WBLOCK_USER_SCRIPT_CACHE_INVALIDATION_FAILED] %{public}@", type: .error, error.localizedDescription)
             }
         }
         #endif
@@ -479,7 +479,7 @@ public class UserScriptManager: ObservableObject {
         // 2) Disk cache
         if let diskResources = readUserScriptResources(self.userScripts[index]) {
             guard Self.resourceCacheFitsLimits(diskResources) else {
-                logger.error("Ignoring oversized @resource cache for script \(self.userScripts[index].name)")
+                logger.error("[WBLOCK_CORE_UNCLASSIFIED_ERROR] Ignoring oversized @resource cache for script \(self.userScripts[index].name)")
                 removeUserScriptResourcesFile(self.userScripts[index])
                 return nil
             }
@@ -496,14 +496,14 @@ public class UserScriptManager: ObservableObject {
             let url = self.resolveMetadataURL(resourceURLString, relativeTo: script)
         else {
             self.logger.error(
-                "❌ Missing @resource URL for '\(resourceName)' in script \(self.userScripts[index].name)"
+                "[WBLOCK_USER_SCRIPT_RESOURCE_URL_MISSING] Missing @resource URL for '\(resourceName)' in script \(self.userScripts[index].name)"
             )
             return nil
         }
 
         let existingResources = self.userScripts[index].resourceContents
         guard existingResources.count < Self.maximumResourcesPerScript else {
-            logger.error("Refusing @resource '\(resourceName)': per-script resource count limit reached")
+            logger.error("[WBLOCK_CORE_UNCLASSIFIED_ERROR] Refusing @resource '\(resourceName)': per-script resource count limit reached")
             return nil
         }
 
@@ -523,7 +523,7 @@ public class UserScriptManager: ObservableObject {
                 sourceURL: url
             ), self.isDDoSProtectionPage(resourceText) {
                 self.logger.error(
-                    "❌ Received DDoS protection page for on-demand @resource: \(resourceURLString)"
+                    "[WBLOCK_USER_SCRIPT_RESOURCE_DDOS_PAGE] Received DDoS protection page for on-demand @resource: \(resourceURLString)"
                 )
                 return nil
             }
@@ -541,7 +541,7 @@ public class UserScriptManager: ObservableObject {
             updatedResources[resourceName] = resourceContent
             guard Self.resourceCacheFitsLimits(updatedResources) else {
                 self.logger.error(
-                    "Refusing @resource '\(resourceName)': per-script storage limit reached"
+                    "[WBLOCK_USER_SCRIPT_RESOURCE_STORAGE_LIMIT] Refusing @resource '\(resourceName)': per-script storage limit reached"
                 )
                 return nil
             }
@@ -551,7 +551,7 @@ public class UserScriptManager: ObservableObject {
             return resourceContent
         } catch {
             self.logger.error(
-                "❌ Failed to download on-demand @resource '\(resourceName)' from \(resourceURLString): \(error)"
+                "[WBLOCK_USER_SCRIPT_RESOURCE_DOWNLOAD_FAILED] Failed to download on-demand @resource '\(resourceName)' from \(resourceURLString): \(error)"
             )
             return nil
         }
@@ -593,12 +593,12 @@ public class UserScriptManager: ObservableObject {
                     success = true
                     logger.info("💾 Wrote userscript resources to: \(fileURL.path)")
                 } catch {
-                    logger.error("❌ Failed to write userscript resources to \(fileURL.path): \(error)")
+                    logger.error("[WBLOCK_CORE_UNCLASSIFIED_ERROR] Failed to write userscript resources to \(fileURL.path): \(error)")
                 }
             }
             return success
         } catch {
-            logger.error("❌ Failed to encode userscript resources for \(userScript.name): \(error)")
+            logger.error("[WBLOCK_CORE_UNCLASSIFIED_ERROR] Failed to encode userscript resources for \(userScript.name): \(error)")
             return false
         }
     }
@@ -738,7 +738,7 @@ public class UserScriptManager: ObservableObject {
                 logger.info("✅ Refreshed Dark Reader to an appearance-aware adapter")
             }
         } catch {
-            logger.error("❌ Dark Reader appearance refresh failed: \(error.localizedDescription)")
+            logger.error("[WBLOCK_CORE_UNCLASSIFIED_ERROR] Dark Reader appearance refresh failed: \(error.localizedDescription)")
         }
     }
 
@@ -1140,7 +1140,7 @@ public class UserScriptManager: ObservableObject {
             )
             return true
         } catch {
-            logger.error("❌ Failed to remove downloads for \(userScript.name): \(error)")
+            logger.error("[WBLOCK_USER_SCRIPT_FILE_REMOVE_FAILED] Failed to remove downloads for \(userScript.name): \(error)")
             return false
         }
     }
@@ -1179,7 +1179,7 @@ public class UserScriptManager: ObservableObject {
                     logger.info("✅ Created userscripts directory at: \(dirURL.path)")
                 } catch {
                     logger.error(
-                        "❌ Error creating userscripts directory at \(dirURL.path): \(error)")
+                        "[WBLOCK_USER_SCRIPT_DIRECTORY_CREATE_FAILED] Error creating userscripts directory at \(dirURL.path): \(error)")
                 }
             } else {
                 logger.info("✅ Userscripts directory already exists at: \(dirURL.path)")
@@ -1291,7 +1291,7 @@ public class UserScriptManager: ObservableObject {
             if donor.id != retained.id && (!repaired.content.isEmpty || !repaired.resourceContents.isEmpty),
                !writeUserScriptFiles(repaired)
             {
-                logger.error("Failed to preserve downloaded built-in userscript data during duplicate repair")
+                logger.error("[WBLOCK_CORE_UNCLASSIFIED_ERROR] Failed to preserve downloaded built-in userscript data during duplicate repair")
                 continue
             }
 
@@ -1343,7 +1343,7 @@ public class UserScriptManager: ObservableObject {
                 }
             } else {
                 logger.error(
-                    "⚠️ Kept embedded userscript content in protobuf for safety. Failed to migrate \(embeddedMigration.failedCount) scripts to file storage.")
+                    "[WBLOCK_USER_SCRIPT_MIGRATION_FAILED] Kept embedded userscript content in protobuf for safety. Failed to migrate \(embeddedMigration.failedCount) scripts to file storage.")
             }
         }
 
@@ -1382,7 +1382,7 @@ public class UserScriptManager: ObservableObject {
 
                 if script.content.isEmpty {
                     if script.isEnabled {
-                        logger.warning("⚠️ Failed to load content for \(script.name)")
+                        logger.warning("[WBLOCK_USER_SCRIPT_CONTENT_LOAD_FAILED] Failed to load content for \(script.name)")
                     } else {
                         logger.info("📖 Skipped content for disabled script \(script.name)")
                     }
@@ -1437,7 +1437,7 @@ public class UserScriptManager: ObservableObject {
             if !writeUserScriptContent(script) {
                 failedCount += 1
                 logger.error(
-                    "❌ Failed migrating embedded userscript content to file for \(script.name)")
+                    "[WBLOCK_USER_SCRIPT_MIGRATION_FAILED] Failed migrating embedded userscript content to file for \(script.name)")
             }
         }
 
@@ -1466,7 +1466,7 @@ public class UserScriptManager: ObservableObject {
             if !existsByURL {
                 logger.info("➕ Adding missing default script: \(defaultScript.name)")
                 guard let url = URL(string: defaultScript.url) else {
-                    logger.error("❌ Invalid URL for default script: \(defaultScript.url)")
+                    logger.error("[WBLOCK_CORE_UNCLASSIFIED_ERROR] Invalid URL for default script: \(defaultScript.url)")
                     continue
                 }
 
@@ -1565,7 +1565,7 @@ public class UserScriptManager: ObservableObject {
 
         for defaultScript in defaultUserScripts {
             guard let url = URL(string: defaultScript.url) else {
-                logger.error("❌ Invalid URL for default userscript: \(defaultScript.url)")
+                logger.error("[WBLOCK_CORE_UNCLASSIFIED_ERROR] Invalid URL for default userscript: \(defaultScript.url)")
                 continue
             }
 
@@ -1715,7 +1715,7 @@ public class UserScriptManager: ObservableObject {
         guard !sharedDefaults.bool(forKey: legacyPopupBlockerMigrationDefaultsKey) else { return }
 
         guard let stableURL = URL(string: BuiltInUserScripts.popupBlockerStableURL) else {
-            logger.error("❌ Invalid stable popup blocker URL: \(BuiltInUserScripts.popupBlockerStableURL)")
+            logger.error("[WBLOCK_CORE_UNCLASSIFIED_ERROR] Invalid stable popup blocker URL: \(BuiltInUserScripts.popupBlockerStableURL)")
             return
         }
 
@@ -1902,7 +1902,7 @@ public class UserScriptManager: ObservableObject {
                     }
                 } catch {
                     self.logger.error(
-                        "❌ Failed prefetching metadata for default userscript \(currentScript.name): \(error)"
+                        "[WBLOCK_USER_SCRIPT_METADATA_PREFETCH_FAILED] Failed prefetching metadata for default userscript \(currentScript.name): \(error)"
                     )
                 }
             }
@@ -1941,7 +1941,7 @@ public class UserScriptManager: ObservableObject {
         // Download and prepend each required script
         for requireURL in userScript.require.prefix(Self.maximumRequiresPerScript) {
             guard let url = resolveMetadataURL(requireURL, relativeTo: userScript) else {
-                logger.error("❌ Invalid @require URL: \(requireURL)")
+                logger.error("[WBLOCK_CORE_UNCLASSIFIED_ERROR] Invalid @require URL: \(requireURL)")
                 continue
             }
 
@@ -1956,23 +1956,23 @@ public class UserScriptManager: ObservableObject {
                 if let requiredContent = String(data: responseData, encoding: .utf8) {
                     // Check for DDoS protection page
                     if isDDoSProtectionPage(requiredContent) {
-                        logger.error("❌ Received DDoS protection page for @require: \(requireURL)")
+                        logger.error("[WBLOCK_CORE_UNCLASSIFIED_ERROR] Received DDoS protection page for @require: \(requireURL)")
                         continue
                     }
                     let section = "// @require \(url.absoluteString)\n\(requiredContent)\n\n"
                     let sectionBytes = section.utf8.count
                     guard requiredBytes + sectionBytes <= Self.maximumRequireBytesPerScript else {
-                        logger.error("❌ Skipping @require: per-script dependency limit reached")
+                        logger.error("[WBLOCK_CORE_UNCLASSIFIED_ERROR] Skipping @require: per-script dependency limit reached")
                         break
                     }
                     requiredSections.append(section)
                     requiredBytes += sectionBytes
                     logger.info("✅ Downloaded required script from: \(url.absoluteString)")
                 } else {
-                    logger.error("❌ Failed to decode required script from: \(requireURL)")
+                    logger.error("[WBLOCK_CORE_UNCLASSIFIED_ERROR] Failed to decode required script from: \(requireURL)")
                 }
             } catch {
-                logger.error("❌ Failed to download @require from \(requireURL): \(error)")
+                logger.error("[WBLOCK_CORE_UNCLASSIFIED_ERROR] Failed to download @require from \(requireURL): \(error)")
             }
         }
 
@@ -2001,7 +2001,7 @@ public class UserScriptManager: ObservableObject {
             let resourceName = resource.name
             let resourceURL = resource.url
             guard let url = resolveMetadataURL(resourceURL, relativeTo: userScript) else {
-                logger.error("❌ Invalid @resource URL: \(resourceURL)")
+                logger.error("[WBLOCK_CORE_UNCLASSIFIED_ERROR] Invalid @resource URL: \(resourceURL)")
                 continue
             }
 
@@ -2019,7 +2019,7 @@ public class UserScriptManager: ObservableObject {
                     sourceURL: url
                 ), isDDoSProtectionPage(resourceText) {
                     logger.error(
-                        "❌ Received DDoS protection page for @resource: \(resourceURL)")
+                        "[WBLOCK_USER_SCRIPT_RESOURCE_DDOS_PAGE] Received DDoS protection page for @resource: \(resourceURL)")
                     continue
                 }
 
@@ -2032,7 +2032,7 @@ public class UserScriptManager: ObservableObject {
                 updatedResources[resourceName] = resourceContent
                 guard Self.resourceCacheFitsLimits(updatedResources) else {
                     logger.error(
-                        "❌ Skipping @resource '\(resourceName)': per-script resource limit reached"
+                        "[WBLOCK_USER_SCRIPT_RESOURCE_STORAGE_LIMIT] Skipping @resource '\(resourceName)': per-script resource limit reached"
                     )
                     continue
                 }
@@ -2041,7 +2041,7 @@ public class UserScriptManager: ObservableObject {
                     "✅ Downloaded resource '\(resourceName)' (\(responseData.count) bytes)")
             } catch {
                 logger.error(
-                    "❌ Failed to download @resource '\(resourceName)' from \(resourceURL): \(error)"
+                    "[WBLOCK_USER_SCRIPT_RESOURCE_DOWNLOAD_FAILED] Failed to download @resource '\(resourceName)' from \(resourceURL): \(error)"
                 )
             }
         }
@@ -2124,7 +2124,7 @@ public class UserScriptManager: ObservableObject {
                 userScripts[failedIndex].version = "Error"
                 await persistUserScriptsNow()
             }
-            logger.error("❌ Failed to download \(scriptName): \(error)")
+            logger.error("[WBLOCK_CORE_UNCLASSIFIED_ERROR] Failed to download \(scriptName): \(error)")
         }
     }
 
@@ -2177,7 +2177,7 @@ public class UserScriptManager: ObservableObject {
             )
         }
         guard persisted else {
-            logger.error("💾 Failed to persist userscripts to ProtobufDataManager")
+            logger.error("[WBLOCK_CORE_UNCLASSIFIED_ERROR] Failed to persist userscripts to ProtobufDataManager")
             return false
         }
         if invalidateExecutionCache {
@@ -2225,7 +2225,7 @@ public class UserScriptManager: ObservableObject {
                 success = true
                 logger.info("💾 Wrote userscript to: \(fileURL.path)")
             } catch {
-                logger.error("❌ Failed to write script to \(fileURL.path): \(error)")
+                logger.error("[WBLOCK_CORE_UNCLASSIFIED_ERROR] Failed to write script to \(fileURL.path): \(error)")
             }
         }
         return success
@@ -3231,7 +3231,7 @@ public class UserScriptManager: ObservableObject {
                 "Could not enable some userscripts because they failed to download: \(preview)\(suffix)."
             statusDescription = "Some userscripts could not be enabled"
             logger.error(
-                "❌ Failed to enable remote userscripts due to missing content: \(names.joined(separator: ", "))")
+                "[WBLOCK_USER_SCRIPT_REMOTE_ENABLE_FAILED] Failed to enable remote userscripts due to missing content: \(names.joined(separator: ", "))")
         }
     }
 
@@ -3610,7 +3610,7 @@ public class UserScriptManager: ObservableObject {
             } catch {
                 failedCount += 1
                 errors.append(candidate.name + ": " + error.localizedDescription)
-                logger.error("❌ Auto-update userscript failed: \(candidate.name) – \(error.localizedDescription)")
+                logger.error("[WBLOCK_CORE_UNCLASSIFIED_ERROR] Auto-update userscript failed: \(candidate.name) – \(error.localizedDescription)")
             }
             completed += 1
         }

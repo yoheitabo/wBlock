@@ -497,7 +497,7 @@ struct UserScriptManagerView: View {
                 if let error {
                     await ConcurrentLogManager.shared.error(.userScript, LocalizedStrings.text("Failed to import dropped userscript"), metadata: ["error": LogErrorDescriber.describe(error)])
                     await MainActor.run {
-                        dropErrorMessage = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
+                        dropErrorMessage = error.wBlockDiagnosticDescription
                     }
                 } else {
                     await MainActor.run {
@@ -1922,7 +1922,7 @@ struct AddUserScriptView: View {
                 if importsURLList { importURLList(from: url) } else { stageFile(at: url) }
             case .failure(let error):
                 if (error as? CocoaError)?.code != .userCancelled {
-                    fileImportError = error.localizedDescription
+                    fileImportError = error.wBlockDiagnosticDescription
                 }
             }
         }
@@ -2128,7 +2128,7 @@ struct AddUserScriptView: View {
                     let name = ImportMetadataReview.userProvided(urlNames[key], automatic: automaticURLName(for: url))
                     let description = ImportMetadataReview.userProvided(urlDescriptions[key], automatic: urlMetadata[key]?.description)
                     if let error = await userScriptManager.addUserScript(from: url, nameOverride: name, descriptionOverride: description, category: urlCategories[key] ?? selectedCategory) {
-                        let message = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
+                        let message = error.wBlockDiagnosticDescription
                         await ConcurrentLogManager.shared.error(.userScript, LocalizedStrings.text("Failed to add userscript from URL"), metadata: ["url": url.absoluteString, "error": message])
                         await MainActor.run {
                             urlImportError = message
@@ -2165,7 +2165,7 @@ struct AddUserScriptView: View {
                 )
                 if let error {
                     await MainActor.run {
-                        fileImportError = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
+                        fileImportError = error.wBlockDiagnosticDescription
                         isAdding = false
                     }
                 } else {
@@ -2229,7 +2229,7 @@ struct AddUserScriptView: View {
 
             if let error {
                 await MainActor.run {
-                    editorImportError = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
+                    editorImportError = error.wBlockDiagnosticDescription
                     isAdding = false
                 }
             } else {
@@ -2306,7 +2306,7 @@ struct AddUserScriptView: View {
             } catch {
                 guard generation == stagingGeneration else { return }
                 isStagingFile = false
-                fileImportError = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
+                fileImportError = error.wBlockDiagnosticDescription
             }
         }
     }

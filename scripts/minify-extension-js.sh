@@ -24,7 +24,7 @@ RESET='\033[0m'
 
 info()    { echo -e "${BOLD}[info]${RESET}  $*"; }
 success() { echo -e "${GREEN}[ok]${RESET}    $*"; }
-error()   { echo -e "${RED}[error]${RESET} $*" >&2; }
+error()   { echo -e "${RED}[WBLOCK_EXTENSION_BUILD_FAILED]${RESET} $*" >&2; }
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SRC_DIR="${ROOT_DIR}/extension-src"

@@ -70,7 +70,7 @@ final class ZapperRuleManager: ObservableObject {
             userInfo: ["action": "wblock:zapperRulesChanged"]
         ) { error in
             if let error {
-                os_log("Failed to refresh Safari zapper rules: %{public}@", type: .error, error.localizedDescription)
+                os_log("[WBLOCK_ZAPPER_RULE_REFRESH_FAILED] %{public}@", type: .error, error.wBlockDiagnosticDescription)
             }
         }
         #endif
@@ -200,7 +200,7 @@ final class ZapperRuleManager: ObservableObject {
 
     private func setupDataDirectoryMonitor() {
         guard let directoryURL = ProtobufDataManager.shared.protobufDataDirectoryURL() else {
-            logger.error("ZapperRuleManager: Failed to locate protobuf data directory")
+            logger.error("[WBLOCK_APP_UNCLASSIFIED_ERROR] ZapperRuleManager: Failed to locate protobuf data directory")
             return
         }
 
@@ -209,7 +209,7 @@ final class ZapperRuleManager: ObservableObject {
                 await self?.refreshFromDisk()
             }
         }) else {
-            logger.error("ZapperRuleManager: Failed to open protobuf data directory")
+            logger.error("[WBLOCK_APP_UNCLASSIFIED_ERROR] ZapperRuleManager: Failed to open protobuf data directory")
             return
         }
     }

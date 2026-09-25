@@ -1441,7 +1441,7 @@ struct AddFilterListView: View {
                 if importsURLList { importURLList(from: url) } else { stageFile(at: url) }
             case .failure(let error):
                 if (error as? CocoaError)?.code != .userCancelled {
-                    importErrorMessage = error.localizedDescription
+                    importErrorMessage = error.wBlockDiagnosticDescription
                 }
             }
         }
@@ -1931,7 +1931,7 @@ struct AddFilterListView: View {
             } catch {
                 guard generation == stagingGeneration else { return }
                 isStagingFile = false
-                importErrorMessage = error.localizedDescription
+                importErrorMessage = error.wBlockDiagnosticDescription
             }
         }
     }
