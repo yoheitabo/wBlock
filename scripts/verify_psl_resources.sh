@@ -4,6 +4,11 @@ set -euo pipefail
 input=${1:?Usage: $0 <app-or-xcarchive>}
 apps=()
 
+if [[ ! -e "$input" ]]; then
+    echo "[WBLOCK_PSL_INPUT_MISSING] App or xcarchive does not exist: $input" >&2
+    exit 1
+fi
+
 if [[ -d "$input/Products/Applications" ]]; then
     while IFS= read -r -d '' app; do
         apps+=("$app")
@@ -13,7 +18,7 @@ else
 fi
 
 ((${#apps[@]} > 0)) || {
-    echo "No app found under $input" >&2
+    echo "[WBLOCK_PSL_APP_MISSING] No app found under $input" >&2
     exit 1
 }
 
@@ -53,13 +58,13 @@ for app in "${apps[@]}"; do
         done
 
         if [[ -z "$resource_dir" ]]; then
-            echo "Missing or incomplete PSL resource bundle for $framework" >&2
+            echo "[WBLOCK_PSL_RESOURCE_INCOMPLETE] Missing or incomplete PSL resource bundle for $framework" >&2
             status=1
         fi
     done < <(find -L "$app" -type d -name 'wBlockCoreService.framework' -print0)
 
     if ((framework_count == 0)); then
-        echo "Missing wBlockCoreService.framework in $app" >&2
+        echo "[WBLOCK_PSL_FRAMEWORK_MISSING] Missing wBlockCoreService.framework in $app" >&2
         status=1
     fi
 done

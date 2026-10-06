@@ -2,11 +2,12 @@
 
 import { readFileSync, writeFileSync } from "node:fs";
 
-const file = process.argv[2];
-if (!file) {
+const arguments_ = process.argv.slice(2);
+if (arguments_.length !== 1) {
   console.error("[WBLOCK_SCRIPTLET_REGISTRY_ARGUMENT_INVALID] Usage: remove-content-scriptlet-registry.mjs <content-source.js>");
   process.exit(2);
 }
+const [file] = arguments_;
 
 const source = readFileSync(file, "utf8");
 const startMarker = "  function AmazonApstag(source, args) {";

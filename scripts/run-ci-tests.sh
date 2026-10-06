@@ -4,7 +4,13 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 TMP="$(mktemp -d)"
-trap 'rm -rf "$TMP"' EXIT
+cleanup() {
+  local exit_code=$?
+  rm -rf "$TMP"
+  trap - EXIT
+  exit "$exit_code"
+}
+trap cleanup EXIT
 
 run() {
   echo "[test] $*"
@@ -33,7 +39,10 @@ if [[ -z "${WBLOCK_DERIVED_DATA:-}" ]]; then
     fi
   done
 fi
-: "${WBLOCK_DERIVED_DATA:?Set WBLOCK_DERIVED_DATA to the existing signed Xcode build directory}"
+if [[ -z "${WBLOCK_DERIVED_DATA:-}" ]]; then
+  echo "[WBLOCK_DERIVED_DATA_MISSING] Set WBLOCK_DERIVED_DATA to the existing signed Xcode build directory" >&2
+  exit 1
+fi
 signing_args=()
 if [[ "${CI:-}" == "true" ]]; then signing_args+=(CODE_SIGNING_ALLOWED=NO); fi
 CORE_DERIVED_DATA="$WBLOCK_DERIVED_DATA"
@@ -101,6 +110,8 @@ compile_direct_test userscript-update-operation \
 compile_direct_test userscript-world-isolation scripts/test_userscript_world_isolation.swift
 compile_direct_test shared-auto-update-lease \
   wBlockCoreService/SharedAutoUpdateLease.swift scripts/test_shared_auto_update_lease.swift
+compile_direct_test tab-selection-isolation \
+  wBlock/AppTabView.swift scripts/test_tab_selection_isolation.swift
 
 # Core-module API tests. Source-only wBlock tests add their production source
 # explicitly; the remaining tests use the freshly built core framework.
@@ -108,6 +119,32 @@ compile_core_test apply-progress-presentation scripts/test_apply_progress_presen
   wBlock/ApplyChangesViewModel.swift
 compile_core_test apply-update-counts scripts/test_apply_update_counts.swift \
   wBlock/ApplyChangesViewModel.swift
+cat > "$TMP/filter-presentation-log-types.swift" <<'SWIFT'
+import Foundation
+
+enum LogLevel: String, Codable, Comparable, CaseIterable {
+  case trace, debug, info, warning, error
+  static func < (lhs: LogLevel, rhs: LogLevel) -> Bool {
+    allCases.firstIndex(of: lhs)! < allCases.firstIndex(of: rhs)!
+  }
+}
+
+enum LogCategory: String, Codable {
+  case system = "System"
+  case filterUpdate = "FilterUpdate"
+  case filterApply = "FilterApply"
+  case userScript = "UserScript"
+  case network = "Network"
+  case whitelist = "Whitelist"
+  case autoUpdate = "AutoUpdate"
+  case startup = "Startup"
+}
+SWIFT
+compile_core_test filter-list-presentation scripts/test_filter_list_presentation.swift \
+  "$TMP/filter-presentation-log-types.swift" \
+  wBlock/FilterListPresentation.swift \
+  wBlock/ListDisplayOrder.swift \
+  wBlock/LocalizationHelpers.swift
 compile_core_test safari-setup-query-isolation scripts/test_safari_setup_query_isolation.swift \
   wBlock/SafariExtensionSetupSupport.swift
 compile_core_test userscript-frame-authorization scripts/test_userscript_frame_authorization.swift
@@ -207,7 +244,9 @@ compile_core_test safari-rule-limit-cap scripts/test_safari_rule_limit_cap.swift
 compile_core_test content-blocker-domain-case scripts/test_content_blocker_domain_case.swift
 compile_core_test site-component-disable-policy scripts/test_site_component_disable_policy.swift
 compile_core_test user-script-url-support scripts/test_userscript_url_support.swift
+compile_core_test user-script-display-category scripts/test_user_script_display_category.swift
 compile_core_test zapper-native-rules scripts/test_zapper_native_rule_generator.swift
+compile_core_test zapper-rule-editing scripts/test_zapper_rule_editing.swift
 
 # These tests exercise internal generated/model state and therefore compile the
 # production files beside the test. SwiftProtobuf is the package product built

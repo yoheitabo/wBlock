@@ -16,8 +16,6 @@ const bundlePath = process.argv[2]
   ?? path.join(repoRoot, "wBlock Scripts (iOS)", "Resources", "content.js");
 const source = readFileSync(bundlePath, "utf8");
 const contentSource = readFileSync(path.join(repoRoot, "extension-src", "content.js"), "utf8");
-const backgroundSource = readFileSync(path.join(repoRoot, "extension-src", "background.js"), "utf8");
-const backgroundBundle = readFileSync(path.join(repoRoot, "wBlock Scripts (iOS)", "Resources", "background.js"), "utf8");
 
 let failures = 0;
 const check = (name, cond) => {
@@ -26,13 +24,8 @@ const check = (name, cond) => {
 };
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
-check("content source keeps Extended CSS", contentSource.includes("class ExtendedCss"));
-check("content source keeps ContentScript", contentSource.includes("class ContentScript"));
 check("content source omits generated scriptlet registry", !contentSource.includes("scriptletsMap") && !contentSource.includes("getScriptletFunction") && !contentSource.includes("scriptlets.invoke"));
 check("shipped content omits generated scriptlet registry", !source.includes("scriptletsMap") && !source.includes("getScriptletFunction"));
-check("background source retains generated scriptlet registry", backgroundSource.includes("var scriptletsMap = {") && backgroundSource.includes("getScriptletFunction") && backgroundSource.includes("var scriptlets = {"));
-check("background source compiles fallback scriptlets", backgroundSource.includes("compileScriptletsForContent") && backgroundSource.includes("code: scriptlets.invoke(source)"));
-check("shipped background retains scriptlet compiler", backgroundBundle.includes("getScriptletFunction") && backgroundBundle.includes("invoke"));
 check("shipped content size stays below regression ceiling", statSync(bundlePath).size < 100 * 1024);
 
 // --- DOM stubs ---

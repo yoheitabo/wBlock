@@ -24,6 +24,7 @@ private struct Page: View {
         let _ = record()
         Text("\(name) \(value)")
     }
+    @MainActor
     private func record() {
         counts.pages[name, default: 0] += 1
         counts.values[name] = value

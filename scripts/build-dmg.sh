@@ -37,7 +37,7 @@ xcodebuild \
   build
 
 if [[ ! -d "${APP_PATH}" ]]; then
-  echo "Expected app not found at: ${APP_PATH}" >&2
+  echo "[WBLOCK_DMG_APP_MISSING] Expected app not found at: ${APP_PATH}" >&2
   exit 1
 fi
 

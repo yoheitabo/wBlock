@@ -3,7 +3,13 @@ set -euo pipefail
 
 ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 TEST_TMP=$(mktemp -d "${TMPDIR:-/tmp}/wblock-preprocessors.XXXXXX")
-trap 'rm -rf "$TEST_TMP"' EXIT
+cleanup() {
+  local exit_code=$?
+  rm -rf "$TEST_TMP"
+  trap - EXIT
+  exit "$exit_code"
+}
+trap cleanup EXIT
 LOG="$TEST_TMP/core-build.log"
 FRAMEWORKS="${WBLOCK_CORE_PRODUCTS:-}"
 
@@ -30,7 +36,10 @@ else
       fi
     done
   fi
-  : "${DERIVED:?Set WBLOCK_DERIVED_DATA to the existing signed Xcode build directory}"
+  if [ -z "$DERIVED" ]; then
+    echo "[WBLOCK_DERIVED_DATA_MISSING] Set WBLOCK_DERIVED_DATA to the existing signed Xcode build directory" >&2
+    exit 1
+  fi
   FRAMEWORKS="$DERIVED/Build/Products/Debug"
   signing_args=()
   if [[ "${CI:-}" == "true" ]]; then signing_args+=(CODE_SIGNING_ALLOWED=NO); fi

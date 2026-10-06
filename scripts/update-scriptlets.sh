@@ -25,7 +25,7 @@ RESET='\033[0m'
 info()    { echo -e "${BOLD}[info]${RESET}  $*"; }
 success() { echo -e "${GREEN}[ok]${RESET}    $*"; }
 warn()    { echo -e "${YELLOW}[warn]${RESET}  $*"; }
-error()   { echo -e "${RED}[error]${RESET} $*" >&2; }
+error()   { echo -e "${RED}[WBLOCK_SCRIPTLETS_UPDATE_FAILED]${RESET} $*" >&2; }
 
 # ---------------------------------------------------------------------------
 # Paths
