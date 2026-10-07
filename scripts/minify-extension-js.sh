@@ -9,9 +9,8 @@ set -euo pipefail
 # sections). The Resources copies are generated artifacts — never edit them.
 #
 # Usage: ./scripts/minify-extension-js.sh
-# Prerequisites: node (npx fetches the pinned esbuild on first run)
+# Prerequisite: npm ci --prefix scripts/codemirror-build
 
-ESBUILD_VERSION="0.28.2"
 # Deployment floor is iOS 15.4 / Safari 15.4; safari15 prevents esbuild from
 # emitting newer syntax while leaving the existing (already-supported) syntax
 # untouched.
@@ -53,7 +52,7 @@ minify_one() {
 
   local tmp
   tmp="$(mktemp)"
-  npx --yes "esbuild@${ESBUILD_VERSION}" "${src}" \
+  npm --prefix "${ROOT_DIR}/scripts/codemirror-build" exec --offline -- esbuild "${src}" \
     --minify \
     --target="${ESBUILD_TARGET}" \
     --line-limit=500 \

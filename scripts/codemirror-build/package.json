@@ -1,7 +1,12 @@
 {
-  "name": "wblock-codemirror",
+  "name": "wblock-web-build",
   "private": true,
   "type": "module",
+  "packageManager": "npm@11.21.0",
+  "engines": {
+    "node": "24.x",
+    "npm": "11.x"
+  },
   "scripts": {
     "build": "esbuild editor.js --bundle --minify --format=iife --outfile=../../wBlock/Resources/CodeMirror/codemirror.bundle.js"
   },
@@ -14,6 +19,6 @@
     "@codemirror/view": "^6.36.0",
     "@codemirror/lang-javascript": "^6.2.0",
     "@codemirror/lang-css": "^6.3.0",
-    "esbuild": "^0.25.0"
+    "esbuild": "0.28.2"
   }
 }

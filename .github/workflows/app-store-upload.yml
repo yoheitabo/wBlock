@@ -98,6 +98,7 @@ jobs:
             <key>testFlightInternalTestingOnly</key><false/>
           </dict></plist>
           PLIST
+          python3 scripts/extension-manifest-version.py --set "${MARKETING_VERSION}"
           for platform in ${PLATFORMS}; do
             archive="${RUNNER_TEMP}/wBlock-${platform}-${MARKETING_VERSION}-${BUILD_NUMBER}.xcarchive"
             echo "== Archiving ${platform}"
@@ -114,6 +115,9 @@ jobs:
               printf '%s=' "${key}"; /usr/libexec/PlistBuddy -c "Print :${key}" "${plist}"
             done
             [[ "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "${plist}")" == "${BUILD_NUMBER}" ]]
+            extension_manifest="$(find "${app}" -path '*wBlock Scripts.appex*' -name manifest.json -print -quit)"
+            [[ -n "${extension_manifest}" ]]
+            [[ "$(jq -r '.version' "${extension_manifest}")" == "${MARKETING_VERSION}" ]]
             if [[ "${platform}" == "macOS" ]]; then
               echo "== Checking macOS toolbar weak links"
               xcrun nm -arch all -m "${app}/Contents/MacOS/wBlock" | xcrun swift-demangle | \

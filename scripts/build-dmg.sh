@@ -12,7 +12,10 @@ APP_PATH="${DERIVED_DATA}/Build/Products/${CONFIGURATION}/wBlock.app"
 
 SIGNING_IDENTITY="${SIGNING_IDENTITY:-}"
 VERSION="${VERSION:-}"
+version_args=()
 if [[ -n "${VERSION}" ]]; then
+  python3 "${ROOT_DIR}/scripts/extension-manifest-version.py" --check "${VERSION}"
+  version_args+=("MARKETING_VERSION=${VERSION}")
   DMG_NAME="wBlock-${VERSION}.dmg"
 else
   DMG_NAME="wBlock.dmg"
@@ -34,11 +37,36 @@ xcodebuild \
   -derivedDataPath "${DERIVED_DATA}" \
   "CODE_SIGNING_ALLOWED=NO" \
   "ARCHS=arm64 x86_64" \
+  "${version_args[@]}" \
   build
 
 if [[ ! -d "${APP_PATH}" ]]; then
   echo "[WBLOCK_DMG_APP_MISSING] Expected app not found at: ${APP_PATH}" >&2
   exit 1
+fi
+
+if [[ -n "${VERSION}" ]]; then
+  built_version="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "${APP_PATH}/Contents/Info.plist")"
+  [[ "${built_version}" == "${VERSION}" ]] || {
+    echo "[WBLOCK_DMG_VERSION_MISMATCH] Built app has ${built_version}; expected ${VERSION}" >&2
+    exit 1
+  }
+  extension_manifest="$(find "${APP_PATH}/Contents/PlugIns" -path '*wBlock Scripts.appex*' -name manifest.json -print -quit)"
+  [[ -n "${extension_manifest}" ]] || {
+    echo "[WBLOCK_DMG_EXTENSION_MANIFEST_MISSING] Built extension manifest was not found" >&2
+    exit 1
+  }
+  python3 - "${extension_manifest}" "${VERSION}" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+actual = json.loads(Path(sys.argv[1]).read_text())["version"]
+if actual != sys.argv[2]:
+    raise SystemExit(
+        f"[WBLOCK_DMG_EXTENSION_VERSION_MISMATCH] Built extension has {actual}; expected {sys.argv[2]}"
+    )
+PY
 fi
 
 # CODE_SIGNING_ALLOWED=NO leaves $(AppIdentifierPrefix) unresolved in plists.

@@ -5,12 +5,12 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 TMP="$(mktemp -d)"
 cleanup() {
-  local exit_code=$?
-  rm -rf "$TMP"
+  local exit_code="$1"
   trap - EXIT
+  rm -rf "$TMP"
   exit "$exit_code"
 }
-trap cleanup EXIT
+trap 'cleanup "$?"' EXIT
 
 run() {
   echo "[test] $*"
@@ -51,7 +51,7 @@ run xcodebuild -project wBlock.xcodeproj \
   -configuration Debug \
   -destination 'generic/platform=macOS' \
   -derivedDataPath "$CORE_DERIVED_DATA" \
-  "${signing_args[@]}" \
+  ${signing_args[@]+"${signing_args[@]}"} \
   build >/dev/null
 CORE_PRODUCTS="$CORE_DERIVED_DATA/Build/Products/Debug"
 export WBLOCK_CORE_PRODUCTS="$CORE_PRODUCTS"

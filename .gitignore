@@ -15,7 +15,6 @@ DerivedData/
 
 # CodeMirror bundle build dependencies (source is committed, deps are not)
 scripts/codemirror-build/node_modules/
-scripts/codemirror-build/package-lock.json
 
 # GSD planning
 .planning/
@@ -32,3 +31,6 @@ docs/superpowers/
 .derived-data
 node_modules/
 .claude/
+
+# Cloudflare Wrangler local runtime state and request cache
+.wrangler/
